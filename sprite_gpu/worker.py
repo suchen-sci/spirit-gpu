@@ -9,14 +9,14 @@ import aiohttp
 import backoff
 import base64
 
-from sprite_gpu import settings
-from sprite_gpu.manager import TaskManager
-from sprite_gpu.env import Env
-from sprite_gpu.task import MsgHeader, Operation, Status, Task
-from sprite_gpu.concurrency import Concurrency
-from sprite_gpu.log import logger
+from . import settings
+from .manager import TaskManager
+from .env import Env
+from .task import MsgHeader, Operation, Status, Task
+from .concurrency import Concurrency
+from .log import logger
 
-from sprite_gpu.utils import current_unix_milli
+from .utils import current_unix_milli
 
 
 @dataclass

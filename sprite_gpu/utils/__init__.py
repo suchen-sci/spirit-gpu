@@ -1,8 +1,9 @@
 import time
 import subprocess
 from sprite_gpu.settings import EASE_TEST_MODE
-from sprite_gpu.utils.validate import *
-from sprite_gpu.utils.file import *
+
+from .validate import *
+from .file import *
 
 
 def current_unix_milli():

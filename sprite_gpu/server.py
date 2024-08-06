@@ -4,10 +4,10 @@ import os
 from typing import Dict, Any
 from aiohttp import web
 
-from sprite_gpu.env import Env
-from sprite_gpu.log import logger
-from sprite_gpu.settings import EASE_TEST_PORT
-from sprite_gpu.worker import wrap_handler
+from .env import Env
+from .log import logger
+from .settings import EASE_TEST_PORT
+from .worker import wrap_handler
 
 
 class Handler:

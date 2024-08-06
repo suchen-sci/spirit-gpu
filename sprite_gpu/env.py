@@ -1,5 +1,5 @@
-from sprite_gpu import conf
-from sprite_gpu.log import logger
+from . import conf
+from .log import logger
 
 
 class Env:

@@ -3,8 +3,8 @@ from urllib.parse import urljoin
 
 import aiohttp
 
-from sprite_gpu import settings, task
-from sprite_gpu.log import logger
+from . import settings, task
+from .log import logger
 from typing import Any, Callable, Dict
 
 

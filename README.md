@@ -1,14 +1,19 @@
-# serverless-framework-python
+# Sprite-GPU
 
-- [serverless-framework-python](#serverless-framework-python)
+- [Sprite-GPU](#sprite-gpu)
+  - [Install](#install)
   - [Usage example](#usage-example)
   - [API](#api)
 
+## Install
+```
+pip install sprite-gpu
+```
 
 ## Usage example
 
 ```python
-from serverless import start
+from sprite_gpu import start
 
 
 def handler(request: Dict[str, Any]):

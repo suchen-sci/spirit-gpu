@@ -1,5 +1,5 @@
 from typing import Callable, Optional
-from sprite_gpu.log import logger
+from .log import logger
 
 
 class Concurrency:

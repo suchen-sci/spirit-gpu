@@ -3,13 +3,11 @@ import os
 from typing import Dict, Any, Optional
 
 
-from sprite_gpu.conf import Config, load_config
-from sprite_gpu.env import Env
-from sprite_gpu.worker import run
-from sprite_gpu.log import logger
-from sprite_gpu import utils
-from sprite_gpu import server
-from sprite_gpu import manage
+from .conf import Config, load_config
+from .env import Env
+from .worker import run
+from .log import logger
+from . import utils, server, manage
 
 __all__ = ["start", "utils", "manage"]
 

@@ -1,7 +1,7 @@
 import logging
 import os
 
-from sprite_gpu.settings import EASE_DEBUG
+from .settings import EASE_DEBUG
 
 
 def get_log_level():
