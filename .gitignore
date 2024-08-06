@@ -1,0 +1,7 @@
+__pycache__/
+.DS_Store
+
+# packaging
+dist/
+*.egg-info/
+ease_serverless/_version.py

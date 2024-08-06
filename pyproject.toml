@@ -1,0 +1,46 @@
+[project]
+name = "sprite-gpu"
+dynamic = ["version", "dependencies"]
+description = "Python serverless framework for Datastone Sprite GPU."
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.9"
+license = { text = "MIT License" }
+authors = [{ name = "Sprite", email = "pypi@datastone.cn" }]
+keywords = [
+    "serverless",
+    "ai",
+    "gpu",
+    "machine learning",
+    "SDK",
+    "library",
+    "python",
+    "API",
+]
+classifiers = [
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.9",
+    "Operating System :: OS Independent",
+    "Environment :: GPU",
+    "Framework :: Serverless",
+]
+
+[project.urls]
+Homepage = "https://github.com/datastone-sprite"
+Documentation = "https://github.com/datastone-sprite/sprite-gpu/blob/main/README.md"
+Repository = "https://github.com/datastone-sprite/sprite-gpu"
+BugTracker = "https://github.com/datastone-sprite/sprite-gpu/issues"
+
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_file = "sprite_gpu/_version.py"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
