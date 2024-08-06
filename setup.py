@@ -43,7 +43,6 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3.9",
             "Operating System :: OS Independent",
             "Environment :: GPU",
-            "Framework :: Serverless",
         ],
         include_package_data=True,
         keywords=[

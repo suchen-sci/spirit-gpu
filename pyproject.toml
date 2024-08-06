@@ -22,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Operating System :: OS Independent",
     "Environment :: GPU",
-    "Framework :: Serverless",
 ]
 
 [project.urls]
