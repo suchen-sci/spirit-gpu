@@ -7,9 +7,9 @@ from .conf import Config, load_config
 from .env import Env
 from .worker import run
 from .log import logger
-from . import utils, server, manage
+from . import utils, server
 
-__all__ = ["start", "utils", "manage"]
+__all__ = ["start", "utils"]
 
 
 def start(handlers: Dict[str, Any], custom_wd: Optional[str] = None):
