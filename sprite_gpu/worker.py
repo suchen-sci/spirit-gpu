@@ -4,6 +4,7 @@ import dataclasses
 import inspect
 import json
 import sys
+import traceback
 from typing import Dict, Any
 import aiohttp
 import backoff
@@ -226,7 +227,8 @@ async def handle_msg(
             res = json.dumps(res).encode()
 
     except Exception as e:
-        error = f"failed to handle message {header.request_id}: {e}"
+        stack_trace = traceback.format_exc()
+        error = f"failed to handle message {header.request_id}: {e}\n{stack_trace}"
         logger.error(error)
         status = getStatus(
             header,
