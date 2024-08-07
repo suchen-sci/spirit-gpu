@@ -228,7 +228,7 @@ async def handle_msg(
 
     except Exception as e:
         stack_trace = traceback.format_exc()
-        error = f"failed to handle message {header.request_id}: {e}\n{stack_trace}"
+        error = f"custom handler raise exception for request {header.request_id}, err: {e}\n{stack_trace}"
         logger.error(error)
         status = getStatus(
             header,
@@ -318,10 +318,10 @@ async def send_request(
         try:
             resp, text = await do_send()
         except Exception as e:
-            err = str(e)
+            err = f"failed to call webhook <{webhook}>: {str(e)}"
         if resp is not None:
             if resp.status != 200:
-                err = f"request {header.request_id} failed {resp.status}: {text}"
+                err = f"request {header.request_id} receive unsuccess status code from webhook {resp.status}: {text}"
 
     try:
         result = getResult(status_code, message, data)
