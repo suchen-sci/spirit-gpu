@@ -14,9 +14,10 @@ pip install sprite-gpu
 
 ```python
 from sprite_gpu import start
+from sprite_gpu.env import Env
 
 
-def handler(request: Dict[str, Any]):
+def handler(request: Dict[str, Any], env: Env):
     """
     request: Dict[str, Any], from client http request body.
     request["input"]: Required.
@@ -28,7 +29,7 @@ def handler(request: Dict[str, Any]):
     return {"output": "hello"}
 
 
-def gen_handler(request: Dict[str, Any]):
+def gen_handler(request: Dict[str, Any], env: Env):
     """
     append yield output to array, serialize into JSON and send to client.
     in this case: [0, 1, 2, 3, 4]
@@ -37,14 +38,14 @@ def gen_handler(request: Dict[str, Any]):
         yield i
 
 
-async def async_handler(request: Dict[str, Any]):
+async def async_handler(request: Dict[str, Any], env: Env):
     """
     returned object to be serialized into JSON and sent to the client.
     """
     return {"output": "hello"}
 
 
-async def async_gen_handler(request: Dict[str, Any]):
+async def async_gen_handler(request: Dict[str, Any], env: Env):
     """
     append yield output to array, serialize into JSON and send to client.
     """
@@ -72,4 +73,4 @@ start({
 ```
 
 ## API
-See [API](./API.md) or [中文 API](./API.zh.md) for more details.
+See [API](https://github.com/datastone-sprite/sprite-gpu/blob/main/API.md) or [中文 API](https://github.com/datastone-sprite/sprite-gpu/blob/main/API.zh.md) for more details.
