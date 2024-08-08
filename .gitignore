@@ -4,4 +4,4 @@ __pycache__/
 # packaging
 dist/
 *.egg-info/
-ease_serverless/_version.py
+sprite_gpu/_version.py
