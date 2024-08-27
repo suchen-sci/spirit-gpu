@@ -1,11 +1,11 @@
 [project]
 name = "spirit-gpu"
 dynamic = ["version", "dependencies"]
-description = "Python serverless framework for Datastone spirit GPU."
+description = "Python serverless framework for Datastone Spirit GPU."
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.9"
 license = { text = "MIT License" }
-authors = [{ name = "spirit", email = "pypi@datastone.cn" }]
+authors = [{ name = "Spirit", email = "pypi@datastone.cn" }]
 keywords = [
     "serverless",
     "ai",

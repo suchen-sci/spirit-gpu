@@ -26,7 +26,7 @@ if __name__ == "__main__":
         extras_require=extras_require,
         packages=find_packages(),
         python_requires=">=3.9",
-        description="Python serverless framework for Datastone spirit GPU.",
+        description="Python serverless framework for Datastone Spirit GPU.",
         long_description="For more details, please visit https://github.com/datastone-spirit/spirit-gpu",
         long_description_content_type="text/markdown",
         author="spirit",

@@ -1,6 +1,6 @@
-# spirit-GPU
+# Spirit-GPU
 
-- [spirit-GPU](#spirit-gpu)
+- [Spirit-GPU](#spirit-gpu)
   - [Install](#install)
   - [Usage example](#usage-example)
   - [API](#api)
