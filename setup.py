@@ -19,23 +19,23 @@ extras_require = {
 if __name__ == "__main__":
 
     setup(
-        name="sprite-gpu",
+        name="spirit-gpu",
         use_scm_version=True,
         setup_requires=["setuptools>=45", "setuptools_scm", "wheel"],
         install_requires=load_requirements(),
         extras_require=extras_require,
         packages=find_packages(),
         python_requires=">=3.9",
-        description="Python serverless framework for Datastone Sprite GPU.",
-        long_description="For more details, please visit https://github.com/datastone-sprite/sprite-gpu",
+        description="Python serverless framework for Datastone spirit GPU.",
+        long_description="For more details, please visit https://github.com/datastone-spirit/spirit-gpu",
         long_description_content_type="text/markdown",
-        author="Sprite",
+        author="spirit",
         author_email="pypi@datastone.cn",
-        url="https://github.com/datastone-sprite",
+        url="https://github.com/datastone-spirit",
         project_urls={
-            "Documentation": "https://github.com/datastone-sprite/sprite-gpu/blob/main/README.md",
-            "Source": "https://github.com/datastone-sprite/sprite-gpu",
-            "Bug Tracker": "https://github.com/datastone-sprite/sprite-gpu/issues",
+            "Documentation": "https://github.com/datastone-spirit/spirit-gpu/blob/main/README.md",
+            "Source": "https://github.com/datastone-spirit/spirit-gpu",
+            "Bug Tracker": "https://github.com/datastone-spirit/spirit-gpu/issues",
         },
         classifiers=[
             "Topic :: Software Development :: Libraries :: Application Frameworks",

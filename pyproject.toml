@@ -1,11 +1,11 @@
 [project]
-name = "sprite-gpu"
+name = "spirit-gpu"
 dynamic = ["version", "dependencies"]
-description = "Python serverless framework for Datastone Sprite GPU."
+description = "Python serverless framework for Datastone spirit GPU."
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.9"
 license = { text = "MIT License" }
-authors = [{ name = "Sprite", email = "pypi@datastone.cn" }]
+authors = [{ name = "spirit", email = "pypi@datastone.cn" }]
 keywords = [
     "serverless",
     "ai",
@@ -25,10 +25,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/datastone-sprite"
-Documentation = "https://github.com/datastone-sprite/sprite-gpu/blob/main/README.md"
-Repository = "https://github.com/datastone-sprite/sprite-gpu"
-BugTracker = "https://github.com/datastone-sprite/sprite-gpu/issues"
+Homepage = "https://github.com/datastone-spirit"
+Documentation = "https://github.com/datastone-spirit/spirit-gpu/blob/main/README.md"
+Repository = "https://github.com/datastone-spirit/spirit-gpu"
+BugTracker = "https://github.com/datastone-spirit/spirit-gpu/issues"
 
 
 [project.optional-dependencies]
@@ -39,7 +39,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-version_file = "sprite_gpu/_version.py"
+version_file = "spirit_gpu/_version.py"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }

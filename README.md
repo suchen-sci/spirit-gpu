@@ -1,20 +1,20 @@
-# Sprite-GPU
+# spirit-GPU
 
-- [Sprite-GPU](#sprite-gpu)
+- [spirit-GPU](#spirit-gpu)
   - [Install](#install)
   - [Usage example](#usage-example)
   - [API](#api)
 
 ## Install
 ```
-pip install sprite-gpu
+pip install spirit-gpu
 ```
 
 ## Usage example
 
 ```python
-from sprite_gpu import start
-from sprite_gpu.env import Env
+from spirit_gpu import start
+from spirit_gpu.env import Env
 
 
 def handler(request: Dict[str, Any], env: Env):
@@ -73,4 +73,4 @@ start({
 ```
 
 ## API
-See [API](https://github.com/datastone-sprite/sprite-gpu/blob/main/API.md) or [中文 API](https://github.com/datastone-sprite/sprite-gpu/blob/main/API.zh.md) for more details.
+See [API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.md) or [中文 API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.zh.md) for more details.

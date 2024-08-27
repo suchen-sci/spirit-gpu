@@ -4,4 +4,4 @@ __pycache__/
 # packaging
 dist/
 *.egg-info/
-sprite_gpu/_version.py
+spirit_gpu/_version.py

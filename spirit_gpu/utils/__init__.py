@@ -1,6 +1,6 @@
 import time
 import subprocess
-from sprite_gpu.settings import EASE_TEST_MODE
+from spirit_gpu.settings import EASE_TEST_MODE
 
 from .validate import *
 from .file import *
