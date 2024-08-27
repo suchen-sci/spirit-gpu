@@ -1,4 +1,4 @@
-name: Publish ease_serverless to PyPI
+name: Publish spirit-gpu to PyPI
 
 on:
   release:
