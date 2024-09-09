@@ -16,6 +16,7 @@ from .env import Env
 from .task import MsgHeader, Operation, Status, Task
 from .concurrency import Concurrency
 from .log import logger
+from .heartbeat import Heartbeat
 
 from .utils import current_unix_milli
 
@@ -49,6 +50,7 @@ class WorkConfig:
         self.handler = await wrap_handler(handlers["handler"], env)
         self.concurrency = Concurrency(handlers.get("concurrency_modifier", None))
         self.env = env
+        self.heartbeat = Heartbeat(self.concurrency)
 
         self.task_manager = TaskManager()
         await self.task_manager.init()
@@ -59,6 +61,7 @@ async def run(handlers: Dict[str, Any], env: Env):
     global WORKER
     WORKER = WorkConfig()
     await WORKER.init(handlers, env)
+    WORKER.heartbeat.start()
 
     while True:
         if WORKER.concurrency.is_available():
@@ -69,7 +72,7 @@ async def run(handlers: Dict[str, Any], env: Env):
                 await asyncio.sleep(1)
                 continue
 
-            if WORKER.concurrency.current_jobs == 0 and not health:
+            if len(WORKER.concurrency.current_jobs) == 0 and not health:
                 logger.error("agent is not healthy, exit worker")
                 sys.exit(1)
 
@@ -82,7 +85,7 @@ async def run(handlers: Dict[str, Any], env: Env):
                 await asyncio.sleep(0.5)
                 continue
 
-            WORKER.concurrency.add_job()
+            WORKER.concurrency.add_job(task.header.request_id)
             asyncio.create_task(do_task(task))
 
         await asyncio.sleep(0.05)
@@ -95,7 +98,7 @@ async def do_task(task: Task):
         logger.error(f"failed to handle message: {e}", exc_info=True)
 
     await WORKER.task_manager.ack(task.header.request_id)
-    WORKER.concurrency.remove_job()
+    WORKER.concurrency.remove_job(task.header.request_id)
 
 
 async def report_exec(

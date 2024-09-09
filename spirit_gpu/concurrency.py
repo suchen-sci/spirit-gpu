@@ -10,7 +10,7 @@ class Concurrency:
             self.concurrency_modifier: Callable[[int], int] = lambda x: x
 
         self.allowed_concurrency = 1
-        self.current_jobs = 0
+        self.current_jobs: set[str] = set()
 
     def is_available(self) -> bool:
         try:
@@ -20,19 +20,22 @@ class Concurrency:
         except Exception as e:
             logger.error(f"failed to get concurrency: {e}", exc_info=True)
             self.allowed_concurrency = 1
-        return self.current_jobs < self.allowed_concurrency
+        return len(self.current_jobs) < self.allowed_concurrency
 
-    def add_job(self):
-        self.current_jobs += 1
+    def add_job(self, request_id: str):
+        self.current_jobs.add(request_id)
         logger.debug(
             f"add job, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}"
         )
+    
+    def get_jobs(self):
+        return list(self.current_jobs)
 
-    def remove_job(self):
-        self.current_jobs -= 1
-        if self.current_jobs < 0:
-            logger.error(f"current_jobs is negative {self.current_jobs}")
-            self.current_jobs = 0
+    def remove_job(self, request_id: str):
+        try:
+            self.current_jobs.remove(request_id)
+        except Exception as e:
+            logger.error(f"failed to remove job {request_id}: {e}", exc_info=True)
         logger.debug(
             f"remove job, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}"
         )
