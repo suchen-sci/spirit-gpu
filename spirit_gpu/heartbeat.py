@@ -19,6 +19,7 @@ class Heartbeat:
 
     def start(self):
         if not Heartbeat._thread_started:
+            logger.info("start heartbeat")
             hb = threading.Thread(target=self._run_heartbeat, daemon=True)
             hb.start()
             Heartbeat._thread_started = True
