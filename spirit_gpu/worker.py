@@ -95,7 +95,10 @@ async def do_task(task: Task):
     try:
         await handle_msg(task)
     except Exception as e:
-        logger.error(f"failed to handle message: {e}", exc_info=True)
+        logger.error(
+            f"failed to handle message for request {task.header.request_id}: {e}",
+            exc_info=True,
+        )
 
     await WORKER.task_manager.ack(task.header.request_id)
     WORKER.concurrency.remove_job(task.header.request_id)
@@ -130,7 +133,7 @@ async def parse_data(
         if header.mode == Operation.Async.value:
             webhook = str(request["webhook"])
     except Exception as e:
-        error = f"failed to parse input {header.request_id}: {e}"
+        error = f"failed to parse input {header.request_id} by using json: {e}"
         logger.error(error + str(data))
         status = getStatus(
             header,
@@ -187,7 +190,7 @@ async def wrap_handler(handler: Any, env: Env):
 
 async def check_wait_time(header: MsgHeader, execStartTs: int):
     if execStartTs - header.enqueue_at > header.ttl:
-        error = f"message enqueue time exceed ttl {header.ttl}"
+        error = f"request {header.request_id} enqueue time exceed ttl {header.ttl} milliseconds, drop it to reduce worker running time"
         logger.error(error)
         status = getStatus(
             header,
@@ -338,12 +341,12 @@ async def send_request(
             err = f"{err}, failed to send result to agent: {e}"
         else:
             err = f"failed to send result to agent: {e}"
-        logger.error(f"failed to send result to agent: {e}", exc_info=True)
+        logger.error(f"failed to send result for request {header.request_id} to agent: {e}", exc_info=True)
 
     return err
 
 
-def getResult(status_code: int, message: str, data: bytes):
+def getResult(status_code: int, message: str, data: bytes) -> Dict[str, Any]:
     return {
         "statusCode": status_code,
         "message": message,
