@@ -24,8 +24,8 @@ class Concurrency:
 
     def add_job(self, request_id: str):
         self.current_jobs.add(request_id)
-        logger.debug(
-            f"add job, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}, num: {len(self.current_jobs)}"
+        logger.info(
+            f"add job {request_id}, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}, num: {len(self.current_jobs)}"
         )
 
     def get_jobs(self):
@@ -36,6 +36,6 @@ class Concurrency:
             self.current_jobs.remove(request_id)
         except Exception as e:
             logger.error(f"failed to remove job {request_id}: {e}", exc_info=True)
-        logger.debug(
-            f"remove job, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}, num: {len(self.current_jobs)}"
+        logger.info(
+            f"remove job {request_id}, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}, num: {len(self.current_jobs)}"
         )
