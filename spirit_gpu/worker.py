@@ -94,6 +94,7 @@ async def run(handlers: Dict[str, Any], env: Env):
 async def do_task(task: Task):
     try:
         await handle_msg(task)
+        logger.info(f"finish handle message for request {task.header.request_id}")
     except Exception as e:
         logger.error(
             f"failed to handle message for request {task.header.request_id}: {e}",
