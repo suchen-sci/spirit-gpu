@@ -133,9 +133,9 @@ class Logger:
         message = self._limit_message(message)
         request_id = str(request_id) if request_id is not None else ""
         log: Dict[str, str] = {
-            "level": level_name,
-            "requestID": request_id,
             "message": message,
+            "requestID": request_id,
+            "level": level_name,
         }
         print(json.dumps(log), flush=True)
     
