@@ -129,6 +129,11 @@ async def parse_data(
         _ = request["input"]
         if header.mode == Operation.Async.value:
             webhook = str(request["webhook"])
+        # add meta info
+        if "meta" not in request:
+            request["meta"] = {"requestID": header.request_id} 
+        else:
+            logger.warn(f"meta info already exists in request, cannot add meta info", request_id=header.request_id)
     except Exception as e:
         error = f"failed to parse input by using json, err: {e}"
         logger.error(error + f", data: {str(data)}", request_id=header.request_id)

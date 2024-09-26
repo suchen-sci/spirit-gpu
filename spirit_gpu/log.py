@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 import traceback
 from typing import Any, Dict, Optional
 
@@ -45,7 +46,7 @@ def _valid_log_level(level: Any) -> int:
     if isinstance(level, int):
         if level not in _levelToName:
             print(
-                f"Invalid log level {level}, use default INFO, available levels: {list(_levelToName.keys())}",
+                f"Invalid log level {level}, use default INFO, available levels: logging.DEBUG, logging.INFO etc.",
                 flush=True,
             )
             return logging.INFO
@@ -98,6 +99,7 @@ class Logger:
         ```
         """
         l = _valid_log_level(level)
+        print(f"Set log level to {self._get_level_name(l)}", flush=True)
         self._level = l
 
     def _log(
@@ -136,23 +138,48 @@ class Logger:
             "message": message,
         }
         print(json.dumps(log), flush=True)
+    
         if exc_info:
-            exc = traceback.format_exc()
-            print(exc, flush=True)
+            exc = sys.exc_info()
+            if exc[0] is None:
+                return # no exception
+            info = "".join(traceback.format_exception(*exc))
+            print(info, end="", flush=True)
 
     def critical(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
+        """
+        Log an critical message with optional request ID, caller information (filename and line number), and exception traceback.
+        """
         self._log(message, logging.CRITICAL, request_id, caller, exc_info)
 
     def error(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
+        """
+        Log an error message with optional request ID, caller information (filename and line number), and exception traceback.
+        """
         self._log(message, logging.ERROR, request_id, caller, exc_info)
 
     def warn(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
+        """
+        Log an warn message with optional request ID, caller information (filename and line number), and exception traceback.
+        """
+        self._log(message, logging.WARN, request_id, caller, exc_info)
+    
+    def warning(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
+        """
+        Log an warn message with optional request ID, caller information (filename and line number), and exception traceback.
+        """
         self._log(message, logging.WARN, request_id, caller, exc_info)
 
     def info(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
+        """
+        Log an info message with optional request ID, caller information (filename and line number), and exception traceback.
+        """
         self._log(message, logging.INFO, request_id, caller, exc_info)
 
     def debug(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
+        """
+        Log an debug message with optional request ID, caller information (filename and line number), and exception traceback.
+        """
         self._log(message, logging.DEBUG, request_id, caller, exc_info)
 
 logger = Logger()
