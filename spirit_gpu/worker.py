@@ -190,7 +190,7 @@ async def wrap_handler(handler: Any, env: Env):
         return normal_handler
 
 
-async def check_wait_time(header: MsgHeader, execStartTs: int):
+async def check_wait_time(header: MsgHeader, execStartTs: int, webhook: str) -> bool:
     if execStartTs - header.enqueue_at > header.ttl:
         error = f"request enqueue time exceed ttl {header.ttl} milliseconds, drop it to reduce worker running time"
         logger.error(error, request_id=header.request_id) 
@@ -207,6 +207,13 @@ async def check_wait_time(header: MsgHeader, execStartTs: int):
         await WORKER.task_manager.report_status(
             header.request_id, status.json().encode()
         )
+        await send_request(
+            header=header,
+            webhook=webhook,
+            status_code=408,
+            message=error,
+            data=json.dumps({"error": error}).encode(),
+        )        
         return False
     return True
 
@@ -218,15 +225,15 @@ async def handle_task(
     logger.info(f"handle request", request_id=task.header.request_id)
 
     execStartTs = max(current_unix_milli(), header.enqueue_at)
-    ok = await check_wait_time(header, execStartTs)
+    request, webhook, ok = await parse_data(header, execStartTs, task.data)
+    if not ok:
+        return
+
+    ok = await check_wait_time(header, execStartTs, webhook)
     if not ok:
         return
 
     await report_exec(header, execStartTs)
-
-    request, webhook, ok = await parse_data(header, execStartTs, task.data)
-    if not ok:
-        return
 
     # handle
     try:
