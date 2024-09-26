@@ -104,9 +104,9 @@ class Logger:
         self,
         message: Any,
         level: int,
-        request_id: Optional[str] = None,
-        caller: bool = False,
-        exc_info: bool = False,
+        request_id: Optional[str],
+        caller: bool,
+        exc_info: bool,
     ):
 
         if level < self._level:
@@ -137,21 +137,22 @@ class Logger:
         }
         print(json.dumps(log), flush=True)
         if exc_info:
-            traceback.print_exc()
+            exc = traceback.format_exc()
+            print(exc, flush=True)
 
     def critical(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
-        self._log(message, logging.CRITICAL, request_id, caller)
+        self._log(message, logging.CRITICAL, request_id, caller, exc_info)
 
     def error(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
-        self._log(message, logging.ERROR, request_id, caller)
+        self._log(message, logging.ERROR, request_id, caller, exc_info)
 
     def warn(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
-        self._log(message, logging.WARN, request_id, caller)
+        self._log(message, logging.WARN, request_id, caller, exc_info)
 
     def info(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
-        self._log(message, logging.INFO, request_id, caller)
+        self._log(message, logging.INFO, request_id, caller, exc_info)
 
     def debug(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
-        self._log(message, logging.DEBUG, request_id, caller)
+        self._log(message, logging.DEBUG, request_id, caller, exc_info)
 
 logger = Logger()
