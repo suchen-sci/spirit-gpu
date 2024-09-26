@@ -60,49 +60,40 @@ class TaskManager:
         try:
             await self._ack_request(request_id)
         except Exception as e:
-            logger.error(f"failed to ack request {request_id}: {e}", exc_info=True)
+            logger.error(f"failed to ack request, err: {e}", request_id=request_id, exc_info=True) 
 
     async def _ack_request(self, request_id: str):
         async with self._session.post(self._ack_url(request_id)) as resp:
             if resp.status != 200:
-                logger.error(
-                    f"failed to ack request {request_id}: {resp.status}, {await resp.text()}"
-                )
+                text = await resp.text()
+                logger.error(f"failed to ack request, status code: {resp.status}, body: {text}", request_id=request_id)
                 return
-            logger.debug(f"ack request {request_id}")
 
     async def _send_result(self, request_id: str, data: bytes):
         async with self._session.post(self._result_url(request_id), data=data) as resp:
             if resp.status != 200:
-                logger.error(
-                    f"failed to report result for request {request_id}: {resp.status}, {await resp.text()}"
-                )
+                text = await resp.text()
+                logger.error(f"failed to send result, status code: {resp.status}, body: {text}", request_id=request_id)
                 return
 
     async def send_result(self, request_id: str, data: bytes):
         try:
             await self._send_result(request_id, data)
         except Exception as e:
-            logger.error(
-                f"failed to send result for request {request_id}: {e}", exc_info=True
-            )
+            logger.error(f"failed to send result, err: {e}", request_id=request_id, exc_info=True)
 
     async def report_status(self, request_id: str, data: bytes):
         try:
             await self._report_status(request_id, data)
         except Exception as e:
-            logger.error(
-                f"failed to report status for request {request_id}: {e}", exc_info=True
-            )
+            logger.error(f"failed to report status, err: {e}", request_id=request_id, exc_info=True)
 
     async def _report_status(self, request_id: str, data: bytes):
         async with self._session.post(self._status_url(request_id), data=data) as resp:
             if resp.status != 200:
-                logger.error(
-                    f"failed to report status for request {request_id}: {resp.status}, {await resp.text()}"
-                )
+                text = await resp.text()
+                logger.error(f"failed to report status, status code: {resp.status}, body: {text}", request_id=request_id) 
                 return
-            logger.debug(f"report status for request {request_id}")
 
     async def close(self):
         await self._session.close()

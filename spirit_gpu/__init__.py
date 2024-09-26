@@ -9,7 +9,9 @@ from .worker import run
 from .log import logger
 from . import utils, server
 
-__all__ = ["start", "utils"]
+__all__ = ["start", "utils", "logger"]
+
+
 
 
 def start(handlers: Dict[str, Any], custom_wd: Optional[str] = None):

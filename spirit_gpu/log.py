@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import sys
 import traceback
 from typing import Any, Dict, Optional
 
@@ -120,7 +119,7 @@ class Logger:
             # exception on some versions of IronPython. We trap it here so that
             # IronPython can use logging.
             try:
-                pathname, lno, _, _ = logging.root.findCaller(stack_info=False, stacklevel=1)
+                pathname, lno, _, _ = logging.root.findCaller(stack_info=False, stacklevel=3)
                 try:
                     filename = os.path.basename(pathname)
                 except (TypeError, ValueError, AttributeError):
@@ -130,30 +129,29 @@ class Logger:
             message = f"[{filename}:{lno}] {message}"
 
         message = self._limit_message(message)
-
+        request_id = str(request_id) if request_id is not None else ""
         log: Dict[str, str] = {
             "level": level_name,
-            "requestID": str(request_id),
+            "requestID": request_id,
             "message": message,
         }
         print(json.dumps(log), flush=True)
         if exc_info:
             traceback.print_exc()
-            sys.stdout.flush()
 
-    def critical(self, message: Any, request_id: Optional[str] = None, *, caller: bool = False, exc_info: bool = False):
+    def critical(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
         self._log(message, logging.CRITICAL, request_id, caller)
 
-    def error(self, message: Any, request_id: Optional[str] = None, *, caller: bool = False, exc_info: bool = False):
+    def error(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
         self._log(message, logging.ERROR, request_id, caller)
 
-    def warn(self, message: Any, request_id: Optional[str] = None, *, caller: bool = False, exc_info: bool = False):
+    def warn(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
         self._log(message, logging.WARN, request_id, caller)
 
-    def info(self, message: Any, request_id: Optional[str] = None, *, caller: bool = False, exc_info: bool = False):
+    def info(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
         self._log(message, logging.INFO, request_id, caller)
 
-    def debug(self, message: Any, request_id: Optional[str] = None, *, caller: bool = False, exc_info: bool = False):
+    def debug(self, message: Any, request_id: Optional[str] = None, caller: bool = False, exc_info: bool = False):
         self._log(message, logging.DEBUG, request_id, caller)
 
 logger = Logger()
