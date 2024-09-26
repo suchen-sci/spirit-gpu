@@ -276,12 +276,14 @@ curl -X DELETE \
     "input": {},
     "webhook": {},
     "policy": {
-        "ttl": 600000
+        "ttl": 900000,
     }
 }
 ```
 
-- "ttl": Time to live for the request in milliseconds. By default, a `sync` request will wait for a maximum of 3 minutes; an `async` request will wait for 10 minutes. After that, the worker will no longer process the request and will drop it. This may happen, for example, if there is only one worker but many requests arrive simultaneously.
+- `ttl`: Time to live for the request in milliseconds. By default, a `sync` request will wait for a maximum of `3 minutes`; an `async` request will wait for `15 minutes`. After that, the worker will no longer process the request and will drop it. This may happen, for example, if there is only one worker but many requests arrive simultaneously. 
+
+> You can only set the value of `ttl` for `async` requests, but it should less than 24 hours.
 
 
 ## Error
