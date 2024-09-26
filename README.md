@@ -3,6 +3,7 @@
 - [Spirit-GPU](#spirit-gpu)
   - [Install](#install)
   - [Usage example](#usage-example)
+  - [Logging](#logging)
   - [API](#api)
 
 ## Install
@@ -15,7 +16,7 @@ pip install spirit-gpu
 ```python
 from spirit_gpu import start
 from spirit_gpu.env import Env
-
+from typing import Dict, Any
 
 def handler(request: Dict[str, Any], env: Env):
     """
@@ -70,6 +71,32 @@ Handlers can be synchronous, asynchronous, generators, or asynchronous generator
 start({
     "handler": async_handler, "concurrency_modifier": concurrency_modifier
 })
+```
+
+## Logging
+We provide a tool to log information. Please make sure you update to the `latest` version to use this feature.
+
+Default logging level is "INFO", you can call `logger.set_level(logging.DEBUG)` to change it.
+
+```python
+from spirit_gpu import start, logger
+from spirit_gpu.env import Env
+from typing import Dict, Any
+
+
+def handler(request: Dict[str, Any], env: Env):
+    """
+    request: Dict[str, Any], from client http request body.
+    request["input"]: Required.
+    request["webhook"]: Optional string for asynchronous requests.
+
+    we will only add request["meta"]["requestID"] if it not exist in your request.
+    """
+    request_id = request["meta"]["requestID"]
+    logger.info("start to handle", request_id = request_id, caller=True)
+    return {"output": "hello"}
+
+start({"handler": handler})
 ```
 
 ## API
