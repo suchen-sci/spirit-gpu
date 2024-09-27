@@ -74,10 +74,9 @@ start({
 ```
 
 ## Logging
-We provide a tool to log information. Please make sure you update to the `latest` version to use this feature.
+We provide a tool to log information. Default logging level is "INFO", you can call `logger.set_level(logging.DEBUG)` to change it.
 
-Default logging level is "INFO", you can call `logger.set_level(logging.DEBUG)` to change it.
-
+> Please make sure you update to the `latest` version to use this feature.
 ```python
 from spirit_gpu import start, logger
 from spirit_gpu.env import Env
@@ -100,4 +99,4 @@ start({"handler": handler})
 ```
 
 ## API
-See [API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.md) or [中文 API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.zh.md) for more details.
+Please read [API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.md) or [中文 API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.zh.md) for how to use spirit-gpu serverless apis and some other import policies.

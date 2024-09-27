@@ -33,7 +33,7 @@
     - [Request](#request-6)
     - [Response](#response-6)
     - [Example](#example-4)
-  - [More about Request Body](#more-about-request-body)
+  - [Time-To-Live of request](#time-to-live-of-request)
   - [Error](#error)
 
 
@@ -269,7 +269,7 @@ curl -X DELETE \
     -H "Authorization: Bearer serverless-apikey"
 ```
 
-## More about Request Body
+## Time-To-Live of request
 
 ```json
 {
@@ -305,7 +305,7 @@ Following are details:
 | 400  | "invalid request data, must be a json object with 'input' and 'webhook' (optional)" | The request body must be a valid JSON object with "input" field.                                                       |
 | 400  | "webhook is empty for async request"                                                | A webhook is required for asynchronous requests.                                                                       |
 | 400  | "invalid request arguments"                                                         | Verify the request against this document to ensure you are using the correct arguments.                                |
-| 408  | "request timeout"                                                                   | The synchronous request did not return a result within the specified time.                                             |
+| 408  | "request timeout"                                                                   | The synchronous request did not return a result within the specified time or request TTL expired.                      |
 | 500  | "failed to publish message"                                                         | There was an internal server error; please try again later.                                                            |
 | 500  | "failed to get status"                                                              | There was an internal server error; please try again later.                                                            |
 | 500  | "failed to cancel message(s)"                                                       | There was an internal server error; please try again later.                                                            |

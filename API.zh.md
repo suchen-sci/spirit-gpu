@@ -33,7 +33,7 @@
     - [请求](#请求-6)
     - [响应](#响应-6)
     - [例子](#例子-4)
-  - [请求体](#请求体)
+  - [请求存活时间](#请求存活时间)
   - [错误处理](#错误处理)
 
 
@@ -265,7 +265,7 @@ curl -X DELETE \
     -H "Authorization: Bearer serverless-apikey"
 ```
 
-## 请求体
+## 请求存活时间
 
 ```json
 {
@@ -292,18 +292,18 @@ curl -X DELETE \
 
 错误代码和描述如下：
 
-| 代码 | 消息                                                                                | 描述                                                     |
-| ---- | ----------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| 400  | "request body too large"                                                            | 请求体必须小于或等于20MB。                               |
-| 400  | "failed to get request data"                                                        | 读取请求体时遇到错误。                                   |
-| 400  | "invalid request data, must be a json object with 'input' and 'webhook' (optional)" | 请求体必须是一个有效的JSON对象，包含"input"字段。        |
-| 400  | "webhook is empty for async request"                                                | 异步请求需要一个webhook。                                |
-| 400  | "invalid request arguments"                                                         | 核查请求以确保您使用正确的参数。                         |
-| 408  | "request timeout"                                                                   | 同步请求在指定时间内未返回结果。                         |
-| 500  | "failed to publish message"                                                         | 服务器内部出错，请稍后再试。                             |
-| 500  | "failed to get status"                                                              | 服务器内部出错，请稍后再试。                             |
-| 500  | "failed to cancel message(s)"                                                       | 服务器内部出错，请稍后再试。                             |
-| 500  | "failed to handle message {request id}: {err}"                                      | worker 处理消息时出现错误。错误详情将在 "{err}" 中指定。 |
-| 503  | "not enough gpu now, please try again later"                                        | 目前没有可用的GPU。此消息仅在同步请求时返回。            |
+| 代码 | 消息                                                                                | 描述                                                       |
+| ---- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 400  | "request body too large"                                                            | 请求体必须小于或等于20MB。                                 |
+| 400  | "failed to get request data"                                                        | 读取请求体时遇到错误。                                     |
+| 400  | "invalid request data, must be a json object with 'input' and 'webhook' (optional)" | 请求体必须是一个有效的JSON对象，包含"input"字段。          |
+| 400  | "webhook is empty for async request"                                                | 异步请求需要一个webhook。                                  |
+| 400  | "invalid request arguments"                                                         | 核查请求以确保您使用正确的参数。                           |
+| 408  | "request timeout"                                                                   | 同步请求在指定时间内未返回结果或者请求超过最大存活时间 TTL |
+| 500  | "failed to publish message"                                                         | 服务器内部出错，请稍后再试。                               |
+| 500  | "failed to get status"                                                              | 服务器内部出错，请稍后再试。                               |
+| 500  | "failed to cancel message(s)"                                                       | 服务器内部出错，请稍后再试。                               |
+| 500  | "failed to handle message {request id}: {err}"                                      | worker 处理消息时出现错误。错误详情将在 "{err}" 中指定。   |
+| 503  | "not enough gpu now, please try again later"                                        | 目前没有可用的GPU。此消息仅在同步请求时返回。              |
 
 
