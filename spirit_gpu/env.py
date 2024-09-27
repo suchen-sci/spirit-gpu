@@ -1,5 +1,4 @@
 from . import conf
-from .log import logger
 
 
 class Env:
@@ -8,5 +7,4 @@ class Env:
     """
 
     def __init__(self, config: conf.Config):
-        logger.info("prepare environment.")
         self.config = config

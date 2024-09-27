@@ -4,7 +4,6 @@ import dataclasses
 import inspect
 import json
 import sys
-import traceback
 from typing import Dict, Any
 import aiohttp
 import backoff
@@ -69,20 +68,20 @@ async def run(handlers: Dict[str, Any], env: Env):
                 task, health = await WORKER.task_manager.next()
             except Exception as e:
                 logger.error(f"failed to get task: {e}", exc_info=True)
-                await asyncio.sleep(1)
+                await asyncio.sleep(0.5)
                 continue
 
             if len(WORKER.concurrency.current_jobs) == 0 and not health:
-                logger.error("agent is not healthy, exit worker")
+                logger.error("agent is unhealthy, and no task is running, exit") 
                 sys.exit(1)
 
             if task is None:
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.2)
                 continue
 
             if task.header.request_id == "":
                 logger.error(f"request id of {task} is empty")
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.2)
                 continue
 
             WORKER.concurrency.add_job(task.header.request_id)
@@ -93,13 +92,10 @@ async def run(handlers: Dict[str, Any], env: Env):
 
 async def do_task(task: Task):
     try:
-        await handle_msg(task)
-        logger.info(f"finish handle message for request {task.header.request_id}")
+        await handle_task(task)
+        logger.info(f"finish handle request", request_id=task.header.request_id) 
     except Exception as e:
-        logger.error(
-            f"failed to handle message for request {task.header.request_id}: {e}",
-            exc_info=True,
-        )
+        logger.error(f"failed to handle request, err: {e}", request_id=task.header.request_id, exc_info=True)
 
     await WORKER.task_manager.ack(task.header.request_id)
     WORKER.concurrency.remove_job(task.header.request_id)
@@ -133,9 +129,14 @@ async def parse_data(
         _ = request["input"]
         if header.mode == Operation.Async.value:
             webhook = str(request["webhook"])
+        # add meta info
+        if "meta" not in request:
+            request["meta"] = {"requestID": header.request_id} 
+        else:
+            logger.warn(f"meta info already exists in request, cannot add meta info", request_id=header.request_id)
     except Exception as e:
-        error = f"failed to parse input {header.request_id} by using json: {e}"
-        logger.error(error + str(data))
+        error = f"failed to parse input by using json, err: {e}"
+        logger.error(error + f", data: {str(data)}", request_id=header.request_id)
         status = getStatus(
             header,
             current_unix_milli(),
@@ -189,10 +190,10 @@ async def wrap_handler(handler: Any, env: Env):
         return normal_handler
 
 
-async def check_wait_time(header: MsgHeader, execStartTs: int):
+async def check_wait_time(header: MsgHeader, execStartTs: int, webhook: str) -> bool:
     if execStartTs - header.enqueue_at > header.ttl:
-        error = f"request {header.request_id} enqueue time exceed ttl {header.ttl} milliseconds, drop it to reduce worker running time"
-        logger.error(error)
+        error = f"request enqueue time exceed ttl {header.ttl} milliseconds, drop it to reduce worker running time"
+        logger.error(error, request_id=header.request_id) 
         status = getStatus(
             header,
             current_unix_milli(),
@@ -206,26 +207,33 @@ async def check_wait_time(header: MsgHeader, execStartTs: int):
         await WORKER.task_manager.report_status(
             header.request_id, status.json().encode()
         )
+        await send_request(
+            header=header,
+            webhook=webhook,
+            status_code=408,
+            message=error,
+            data=json.dumps({"error": error}).encode(),
+        )        
         return False
     return True
 
 
-async def handle_msg(
+async def handle_task(
     task: Task,
 ):
     header = task.header
-    logger.info(f"handle request id: {header.request_id}")
+    logger.info(f"handle request", request_id=task.header.request_id)
 
     execStartTs = max(current_unix_milli(), header.enqueue_at)
-    ok = await check_wait_time(header, execStartTs)
+    request, webhook, ok = await parse_data(header, execStartTs, task.data)
+    if not ok:
+        return
+
+    ok = await check_wait_time(header, execStartTs, webhook)
     if not ok:
         return
 
     await report_exec(header, execStartTs)
-
-    request, webhook, ok = await parse_data(header, execStartTs, task.data)
-    if not ok:
-        return
 
     # handle
     try:
@@ -234,9 +242,8 @@ async def handle_msg(
             res = json.dumps(res).encode()
 
     except Exception as e:
-        stack_trace = traceback.format_exc()
-        error = f"custom handler raise exception for request {header.request_id}, err: {e}\n{stack_trace}"
-        logger.error(error)
+        error = f"custom handler raise exception during running, err: {e}"
+        logger.error(error, request_id=header.request_id, exc_info=True) 
         status = getStatus(
             header,
             current_unix_milli(),
@@ -264,8 +271,8 @@ async def handle_msg(
         header=header, webhook=webhook, status_code=200, message="", data=res
     )
     if err is not None:
-        error = f"failed to send request {header.request_id}: {err}"
-        logger.error(error)
+        error = f"failed to send result to user, err: {err}"
+        logger.error(error, request_id=header.request_id) 
 
         status = getStatus(
             header,
@@ -328,7 +335,7 @@ async def send_request(
             err = f"failed to call webhook <{webhook}>: {str(e)}"
         if resp is not None:
             if resp.status != 200:
-                err = f"request {header.request_id} receive unsuccess status code from webhook {resp.status}: {text}"
+                err = f"request {header.request_id} receive unsuccess status code {resp.status} from webhook, body: {text}"
 
     try:
         result = getResult(status_code, message, data)
@@ -342,7 +349,7 @@ async def send_request(
             err = f"{err}, failed to send result to agent: {e}"
         else:
             err = f"failed to send result to agent: {e}"
-        logger.error(f"failed to send result for request {header.request_id} to agent: {e}", exc_info=True)
+        logger.error(f"failed to send result to agent, err: {e}", request_id=header.request_id, exc_info=True)
 
     return err
 

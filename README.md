@@ -3,6 +3,7 @@
 - [Spirit-GPU](#spirit-gpu)
   - [Install](#install)
   - [Usage example](#usage-example)
+  - [Logging](#logging)
   - [API](#api)
 
 ## Install
@@ -15,7 +16,7 @@ pip install spirit-gpu
 ```python
 from spirit_gpu import start
 from spirit_gpu.env import Env
-
+from typing import Dict, Any
 
 def handler(request: Dict[str, Any], env: Env):
     """
@@ -72,5 +73,30 @@ start({
 })
 ```
 
+## Logging
+We provide a tool to log information. Default logging level is "INFO", you can call `logger.set_level(logging.DEBUG)` to change it.
+
+> Please make sure you update to the `latest` version to use this feature.
+```python
+from spirit_gpu import start, logger
+from spirit_gpu.env import Env
+from typing import Dict, Any
+
+
+def handler(request: Dict[str, Any], env: Env):
+    """
+    request: Dict[str, Any], from client http request body.
+    request["input"]: Required.
+    request["webhook"]: Optional string for asynchronous requests.
+
+    we will only add request["meta"]["requestID"] if it not exist in your request.
+    """
+    request_id = request["meta"]["requestID"]
+    logger.info("start to handle", request_id = request_id, caller=True)
+    return {"output": "hello"}
+
+start({"handler": handler})
+```
+
 ## API
-See [API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.md) or [中文 API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.zh.md) for more details.
+Please read [API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.md) or [中文 API](https://github.com/datastone-spirit/spirit-gpu/blob/main/API.zh.md) for how to use spirit-gpu serverless apis and some other import policies.

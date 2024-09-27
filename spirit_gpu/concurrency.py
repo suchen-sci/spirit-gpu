@@ -13,20 +13,18 @@ class Concurrency:
         self.current_jobs: set[str] = set()
 
     def is_available(self) -> bool:
+        current = self.allowed_concurrency
         try:
-            self.allowed_concurrency = self.concurrency_modifier(
-                self.allowed_concurrency
-            )
+            self.allowed_concurrency = self.concurrency_modifier(current)
+            self.allowed_concurrency = int(self.allowed_concurrency)
         except Exception as e:
-            logger.error(f"failed to get concurrency: {e}", exc_info=True)
+            logger.error(f"failed to call concurrency_modifier with input {current}, set concurrency to default 1, err: {e}", exc_info=True)
             self.allowed_concurrency = 1
         return len(self.current_jobs) < self.allowed_concurrency
 
     def add_job(self, request_id: str):
         self.current_jobs.add(request_id)
-        logger.info(
-            f"add job {request_id}, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}, num: {len(self.current_jobs)}"
-        )
+        logger.info(f"added, allowed concurrency: {self.allowed_concurrency}, current jobs: {len(self.current_jobs)}", request_id=request_id)
 
     def get_jobs(self):
         return list(self.current_jobs)
@@ -35,7 +33,5 @@ class Concurrency:
         try:
             self.current_jobs.remove(request_id)
         except Exception as e:
-            logger.error(f"failed to remove job {request_id}: {e}", exc_info=True)
-        logger.info(
-            f"remove job {request_id}, allowed concurrency: {self.allowed_concurrency}, current jobs: {self.current_jobs}, num: {len(self.current_jobs)}"
-        )
+            logger.error(f"failed to remove request from concurrency, err: {e}", request_id=request_id, exc_info=True)
+        logger.info(f"remove request from concurrency, allowed concurrency: {self.allowed_concurrency}, current jobs: {len(self.current_jobs)}", request_id=request_id) 
