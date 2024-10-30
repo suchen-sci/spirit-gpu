@@ -137,7 +137,7 @@ class Logger:
             "requestID": request_id,
             "level": level_name,
         }
-        print(json.dumps(log), flush=True)
+        print(json.dumps(log, ensure_ascii=False), flush=True)
     
         if exc_info:
             exc = sys.exc_info()
