@@ -163,7 +163,7 @@ success response:
 
 - This field contains the worker's result encoded in base64 (same as the one you get from webhook).
 - If the result is `null` and statusCode is `200`, the task is still in progress.
-- Note: The maximum size for the result field is `2MB`. If the worker's result exceeds this limit, it must be retrieved via webhook or another method.
+- Note: The maximum size for the result field is `2MB` for async requests and `10MB` for sync requests. If the worker's result exceeds this limit, it must be retrieved via webhook or another method.
 
 ##### status:
 - `succeed`: The task completed successfully.
