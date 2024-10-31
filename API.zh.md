@@ -162,7 +162,7 @@ curl -X GET http://localhost:10088/v1/<your-serverless-id>/status -H "Authorizat
 
 - 该字段包含以 base64 编码的 worker 结果（与发送到 webhook 的结果一致）。
 - 如果 `result` 为 `null` 且 `statusCode` 为 `200`，表示任务仍在进行中。
-- 注意: `result` 字段的最大大小为 `2MB`。如果 worker 结果超过此限制，则必须通过 `webhook` 或其他方式获取。
+- 注意: `result` 字段的最大大小对异步请求（async）为 `2MB`，而对同步请求（sync）来说则为 `10MB`。如果 worker 结果超过此限制，则必须通过 `webhook` 或其他方式获取。
 - 
 ##### status:
 - `succeed`: 任务成功完成。
