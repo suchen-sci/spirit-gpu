@@ -3,7 +3,6 @@ import dataclasses
 from enum import Enum
 import os
 from datamodel_code_generator import InputFileType, DataModelType
-import pprint
 
 
 class HandlerType(Enum):
@@ -20,18 +19,20 @@ class Arguments:
     output_dir: str
     data_type: DataModelType
     handler_type: HandlerType
+    model_only: bool = False
 
     def check(self):
         cwd = os.getcwd()
+        default_files = ["api.yaml", "api.yml", "api.json"]
         if not self.input_file:
-            for default_file in ["api.yaml", "api.yml", "api.json"]:
-                if os.path.exists(os.path.join(cwd, default_file)):
-                    print("Using default input file:", default_file)
-                    self.input_file = default_file
+            for file in default_files:
+                if os.path.exists(os.path.join(cwd, file)):
+                    print(f"Using default input file: {file}")
+                    self.input_file = file
                     break
             if not self.input_file:
                 raise ValueError(
-                    "Input file is not provided and no default file found."
+                    f"Input file is not provided and no default file found. Supported default files: {default_files}"
                 )
         if not self.output_dir:
             self.output_dir = cwd
@@ -89,6 +90,13 @@ def get_args():
         help=f"Type of handler to generate. Default is 'sync'.",
     )
 
+    parser.add_argument(
+        "--model-only",
+        required=False,
+        action="store_true",
+        help="Generate the model file only when you update the model config",
+    )
+
     args = parser.parse_args()
     arguments = Arguments(
         input_file=args.input_file,
@@ -96,8 +104,11 @@ def get_args():
         output_dir=args.output_dir,
         data_type=DataModelType(args.data_type),
         handler_type=HandlerType(args.handler_type),
+        model_only=args.model_only,
     )
     arguments.check()
     print("Building spirit-gpu skeleton code with following arguments:")
-    pprint.pprint(arguments)
+    for k, v in dataclasses.asdict(arguments).items():
+        print(f"\t{k}: {v}")
+    print()
     return arguments

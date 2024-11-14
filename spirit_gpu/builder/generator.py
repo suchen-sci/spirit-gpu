@@ -10,10 +10,10 @@ import importlib
 TEMPLATE_REPO = "https://github.com/datastone-spirit/worker-template.git"
 
 
-def _check_dir_conflicts(dir1: str, dir2: str):
+def _check_dir_conflicts(dir1: Path | str, dir2: Path | str):
     dir_comp = filecmp.dircmp(dir1, dir2)
     if dir_comp.common_files:
-        print(f"Common files in {dir1} and {dir2}: {dir_comp.common_files}")
+        print(f"WARNING: Common files in {dir1} and {dir2}: {dir_comp.common_files}")
         return False
     for common_dir in dir_comp.common_dirs:
         if not _check_dir_conflicts(
@@ -27,10 +27,16 @@ def generate_template_repo(args: Arguments):
     if not os.path.exists(args.output_dir):
         os.mkdir(args.output_dir)
     # 使用 importlib.resources 来访问内置的模板文件夹
+    print(f"Start to generate template repo in {args.output_dir}") 
     with importlib.resources.path(
         "spirit_gpu.resources", "worker-template"
     ) as template_path:
+        if not _check_dir_conflicts(template_path, args.output_dir):
+            raise ValueError(
+                f"Output directory {args.output_dir} contains files that conflict with generated files. Please remove them or specify a different output directory."
+            )
         shutil.copytree(template_path, args.output_dir, dirs_exist_ok=True)
+    print("Template repo generated\n")
 
 
 def _get_model_path(output_dir: str) -> Path:
@@ -40,6 +46,7 @@ def _get_model_path(output_dir: str) -> Path:
 def generate_model_file(args: Arguments):
     input_file = Path(args.input_file).absolute()
     output_file = Path(_get_model_path(args.output_dir)).absolute()
+    print(f"Start to generate model file, input: {input_file}, output: {output_file}")
     dmcg.generate(
         input_file.read_text(),
         input_file_type=args.input_type,
@@ -48,6 +55,7 @@ def generate_model_file(args: Arguments):
         output_model_type=args.data_type,
         class_name="RequestInput",
     )
+    print("Model file generated\n")
 
 
 def _get_main_path(output_dir: str) -> Path:
@@ -56,11 +64,13 @@ def _get_main_path(output_dir: str) -> Path:
 
 def generate_main_file(args: Arguments):
     output_file = Path(_get_main_path(args.output_dir)).absolute()
+    print(f"Start to generate main file, output: {output_file}")
     output = _generate_main_import(args)
     output += _generate_main_request_input(args)
     output += _generate_main_handler(args)
     output += _generate_main_other(args)
     output_file.write_text(output)
+    print("Main file generated\n")
 
 
 IMPORTS = """
