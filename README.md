@@ -134,26 +134,33 @@ The input file is the `input` part of body of your request to serverless of spir
 
 The input file should define the expected `input` part request body for your serverless spirit-gpu function. Supported formats include JSON, JSON schema, or OpenAPI.
 
-```json
-{
-  "audio": "http://your-audio.wav",
-  "model": "base",
-  "transcription": "plain_text",
-  "translate": false,
-  "language": null
-}
+```yaml
+openapi: 3.1.0·
+components:
+  schemas:
+    RequestInput:
+      type: object
+      required:
+        - audio
+      properties:
+        audio:
+          type: string
+          description: URL to the audio file.
+          nullable: false
+        model:
+          type: string
+          description: Identifier for the model to be used.
+          default: null
+          nullable: true
 ```
 
-this means your request body is something like
+Your request body to `spirit-gpu`:
 
 ```json
 {
     "input": {
         "audio": "http://your-audio.wav",
         "model": "base",
-        "transcription": "plain_text",
-        "translate": false,
-        "language": null
     },
     "webhook": "xxx"
 }
@@ -162,11 +169,10 @@ this means your request body is something like
 Generated python model file:
 ```python
 class RequestInput(BaseModel):
-    audio: str
-    model: str
-    transcription: str
-    translate: bool
-    language: None
+    audio: str = Field(..., description='URL to the audio file.')
+    model: Optional[str] = Field(
+        None, description='Identifier for the model to be used.'
+    )
 ```
 
 If using OpenAPI, ensure the main object in your YAML file is named RequestInput to allow automatic code generation.
