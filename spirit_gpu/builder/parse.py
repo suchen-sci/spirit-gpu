@@ -1,6 +1,7 @@
 import argparse
 import dataclasses
 from enum import Enum
+import os
 from datamodel_code_generator import InputFileType, DataModelType
 import pprint
 
@@ -20,6 +21,21 @@ class Arguments:
     data_type: DataModelType
     handler_type: HandlerType
 
+    def check(self):
+        cwd = os.getcwd()
+        if not self.input_file:
+            for default_file in ["api.yaml", "api.yml", "api.json"]:
+                if os.path.exists(os.path.join(cwd, default_file)):
+                    print("Using default input file:", default_file)
+                    self.input_file = default_file
+                    break
+            if not self.input_file:
+                raise ValueError(
+                    "Input file is not provided and no default file found."
+                )
+        if not self.output_dir:
+            self.output_dir = cwd
+
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -33,7 +49,8 @@ def get_args():
     parser.add_argument(
         "-i",
         "--input-file",
-        required=True,
+        required=False,
+        default="",
         help=f"Path to the input file. Supported types: {input_types}.",
     )
     parser.add_argument(
@@ -49,7 +66,11 @@ def get_args():
         DataModelType.DataclassesDataclass.value,
     ]
     parser.add_argument(
-        "-o", "--output-dir", required=True, help="Path to the output Python file."
+        "-o",
+        "--output-dir",
+        required=False,
+        default="",
+        help="Path to the output Python file.",
     )
     parser.add_argument(
         "--data-type",
@@ -76,6 +97,7 @@ def get_args():
         data_type=DataModelType(args.data_type),
         handler_type=HandlerType(args.handler_type),
     )
+    arguments.check()
     print("Building spirit-gpu skeleton code with following arguments:")
     pprint.pprint(arguments)
     return arguments
