@@ -37,6 +37,10 @@ if __name__ == "__main__":
             "Source": "https://github.com/datastone-spirit/spirit-gpu",
             "Bug Tracker": "https://github.com/datastone-spirit/spirit-gpu/issues",
         },
+        include_package_data=True,  # Include package data specified in MANIFEST.in or package_data
+        package_data={
+            "spirit_gpu": ["resources/worker-template/**/*"],
+        },
         classifiers=[
             "Topic :: Software Development :: Libraries :: Application Frameworks",
             "License :: OSI Approved :: MIT License",
@@ -44,7 +48,6 @@ if __name__ == "__main__":
             "Operating System :: OS Independent",
             "Environment :: GPU",
         ],
-        include_package_data=True,
         keywords=[
             "serverless",
             "ai",
