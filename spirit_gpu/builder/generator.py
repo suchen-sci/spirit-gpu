@@ -28,7 +28,7 @@ def generate_template_repo(args: Arguments):
         os.mkdir(args.output_dir)
     # 使用 importlib.resources 来访问内置的模板文件夹
     with importlib.resources.path(
-        "spirit-gpu-builder", "resources/worker-template"
+        "spirit_gpu", "resources/worker-template"
     ) as template_path:
         shutil.copytree(template_path, args.output_dir, dirs_exist_ok=True)
 
