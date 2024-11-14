@@ -56,4 +56,9 @@ if __name__ == "__main__":
             "API",
         ],
         license="MIT",
+        entry_points={
+            "console_scripts": [
+                "spirit-gpu-buuilder = spirit_gpu.cmd.builder:main",
+            ],
+        },
     )
