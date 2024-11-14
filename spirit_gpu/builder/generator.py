@@ -91,12 +91,12 @@ def _generate_main_import(args: Arguments):
 
 REQUEST_INPUT_FROM_DATACLASS = """
 def get_request_input(request: Dict[str, Any]) -> RequestInput:
-    return dacite.from_dict(RequestInput, request)
+    return dacite.from_dict(RequestInput, request["input"])
 """
 
 REQUEST_INPUT_FROM_PYDANTIC = """
 def get_request_input(request: Dict[str, Any]) -> RequestInput:
-    return RequestInput(**request)
+    return RequestInput(**request["input"])
 """
 
 

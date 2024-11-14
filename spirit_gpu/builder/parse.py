@@ -4,6 +4,8 @@ from enum import Enum
 import os
 from datamodel_code_generator import InputFileType, DataModelType
 
+DEFAULT_API_FILES = ["api.yaml", "api.yml", "api.json"]
+
 
 class HandlerType(Enum):
     Sync = "sync"
@@ -23,16 +25,15 @@ class Arguments:
 
     def check(self):
         cwd = os.getcwd()
-        default_files = ["api.yaml", "api.yml", "api.json"]
         if not self.input_file:
-            for file in default_files:
+            for file in DEFAULT_API_FILES:
                 if os.path.exists(os.path.join(cwd, file)):
                     print(f"Using default input file: {file}")
                     self.input_file = file
                     break
             if not self.input_file:
                 raise ValueError(
-                    f"Input file is not provided and no default file found. Supported default files: {default_files}"
+                    f"Input file is not provided and no default file found. Supported default files: {DEFAULT_API_FILES}"
                 )
         if not self.output_dir:
             self.output_dir = cwd
@@ -41,7 +42,7 @@ class Arguments:
 def get_args():
     parser = argparse.ArgumentParser(
         description=(
-            "Generate spirit-gpu skeleton code from a OpenAPI or JSON schema, built on top of datamodel-code-generator."
+            "Generate spirit-gpu skeleton code from a OpenAPI or JSON schema, built on top of datamodel-code-generator. "
             "Please check more details about usage of generated code from https://github.com/datastone-spirit/spirit-gpu"
         )
     )
@@ -52,7 +53,10 @@ def get_args():
         "--input-file",
         required=False,
         default="",
-        help=f"Path to the input file. Supported types: {input_types}.",
+        help=(
+            f"Path to the input file. Supported types: {input_types}. "
+            f"If not provided, will try to find default file in current directory, default files {DEFAULT_API_FILES}."
+        ),
     )
     parser.add_argument(
         "--input-type",
@@ -71,14 +75,14 @@ def get_args():
         "--output-dir",
         required=False,
         default="",
-        help="Path to the output Python file.",
+        help="Path to the output Python file. Default is current directory.",
     )
     parser.add_argument(
         "--data-type",
         required=False,
         choices=data_types,
-        default="pydantic_v2.BaseModel",
-        help="Type of data model to generate. Default is 'pydantic_v2.BaseModel'.",
+        default=DataModelType.PydanticV2BaseModel.value,
+        help=f"Type of data model to generate. Default is '{DataModelType.PydanticV2BaseModel.value}'.",
     )
 
     handler_types = [t.value for t in HandlerType]
@@ -94,7 +98,7 @@ def get_args():
         "--model-only",
         required=False,
         action="store_true",
-        help="Generate the model file only when you update the model config",
+        help="Only generate the model file and skip the template repo and main file generation. Useful when update the api file.",
     )
 
     args = parser.parse_args()
