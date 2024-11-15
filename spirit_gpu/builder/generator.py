@@ -7,9 +7,6 @@ from pathlib import Path
 import datamodel_code_generator as dmcg
 import importlib
 
-TEMPLATE_REPO = "https://github.com/datastone-spirit/worker-template.git"
-
-
 def _check_dir_conflicts(dir1: Path | str, dir2: Path | str):
     dir_comp = filecmp.dircmp(dir1, dir2)
     if dir_comp.common_files:
