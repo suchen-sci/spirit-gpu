@@ -34,6 +34,9 @@ BugTracker = "https://github.com/datastone-spirit/spirit-gpu/issues"
 [project.optional-dependencies]
 test = ["pytest"]
 
+[project.scripts]
+spirit-gpu-builder = "spirit_gpu.cmd:main"
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
@@ -43,3 +46,9 @@ version_file = "spirit_gpu/_version.py"
 
 [tool.setuptools.dynamic]
 dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+spirit_gpu = ["resources/worker-template/**/*"]

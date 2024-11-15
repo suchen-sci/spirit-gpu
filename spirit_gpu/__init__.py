@@ -12,8 +12,6 @@ from . import utils, server
 __all__ = ["start", "utils", "logger"]
 
 
-
-
 def start(handlers: Dict[str, Any], custom_wd: Optional[str] = None):
     """
     handlers: {"handler": async_handler, "concurrency_modifier": concurrency_modifier}
