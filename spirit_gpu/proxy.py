@@ -61,7 +61,7 @@ async def parse_proxy_data(header: MsgHeader, execStartTs: int, data: bytes) -> 
     return request, "", True
 
 
-async def stream_handler(task: Task, request: Dict[str, Any], env: Env):
+async def proxy_handler(task: Task, request: Dict[str, Any], env: Env):
     proxy_request_data = ProxyRequestData(**request)
     url = path.join(PROXY_CONFIG.base_url, proxy_request_data.uri)
 

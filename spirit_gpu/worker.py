@@ -1,21 +1,20 @@
 import asyncio
-import inspect
 import json
 import sys
 from typing import Dict, Any
 import aiohttp
-import backoff
-import base64
 
 from . import settings
 from .manager import TaskManager
 from .env import Env
-from .task import MsgHeader, Operation, Status, Task, getStatus
+from .task import MsgHeader, Status, Task, getStatus
 from .concurrency import Concurrency
 from .log import logger
 from .heartbeat import Heartbeat
+from .handler import parse_data, wrap_handler, send_request
 
 from .utils import current_unix_milli
+
 
 class WorkConfig:
     async def init(self, handlers: Dict[str, Any], env: Env):
@@ -48,7 +47,7 @@ async def run(handlers: Dict[str, Any], env: Env):
                 continue
 
             if len(WORKER.concurrency.current_jobs) == 0 and not health:
-                logger.error("agent is unhealthy, and no task is running, exit") 
+                logger.error("agent is unhealthy, and no task is running, exit")
                 sys.exit(1)
 
             if task is None:
@@ -69,7 +68,7 @@ async def run(handlers: Dict[str, Any], env: Env):
 async def do_task(task: Task):
     try:
         await handle_task(task)
-        logger.info(f"finish handle request", request_id=task.header.request_id) 
+        logger.info(f"finish handle request", request_id=task.header.request_id)
     except Exception as e:
         logger.error(f"failed to handle request, err: {e}", request_id=task.header.request_id, exc_info=True)
 
@@ -94,82 +93,10 @@ async def report_exec(
     await WORKER.task_manager.report_status(header.request_id, status.json().encode())
 
 
-async def parse_data(
-    header: MsgHeader,
-    execStartTs: int,
-    data: bytes,
-) -> tuple[Any, str, bool]:
-    webhook = header.webhook
-    try:
-        request = json.loads(data)
-        _ = request["input"]
-        if header.mode == Operation.Async.value:
-            webhook = str(request["webhook"])
-        # add meta info
-        if "meta" not in request:
-            request["meta"] = {"requestID": header.request_id} 
-        else:
-            logger.warn(f"meta info already exists in request, cannot add meta info", request_id=header.request_id)
-    except Exception as e:
-        error = f"failed to parse input by using json, err: {e}"
-        logger.error(error + f", data: {str(data)}", request_id=header.request_id)
-        status = getStatus(
-            header,
-            current_unix_milli(),
-            "",
-            Status.Failed.value,
-            execStartTs - header.enqueue_at,
-            0,
-            0,
-            error,
-        )
-        await WORKER.task_manager.report_status(
-            header.request_id, status.json().encode()
-        )
-        return None, "", False
-    return request, webhook, True
-
-
-async def wrap_handler(handler: Any, env: Env):
-    if inspect.isasyncgenfunction(handler):
-
-        async def async_gen_handler(request: Any):
-            res: Any = []
-            async for r in handler(request, env):
-                res.append(r)
-            return res
-
-        return async_gen_handler
-
-    elif inspect.iscoroutinefunction(handler):
-
-        async def coroutine_handler(request: Any):
-            return await handler(request, env)
-
-        return coroutine_handler
-
-    elif inspect.isgeneratorfunction(handler):
-
-        async def generator_handler(request: Any):
-            res: Any = []
-            for r in handler(request, env):
-                res.append(r)
-            return res
-
-        return generator_handler
-
-    else:
-
-        async def normal_handler(request: Any):
-            return handler(request, env)
-
-        return normal_handler
-
-
 async def check_wait_time(header: MsgHeader, execStartTs: int, webhook: str) -> bool:
     if execStartTs - header.enqueue_at > header.ttl:
         error = f"request enqueue time exceed ttl {header.ttl} milliseconds, drop it to reduce worker running time"
-        logger.error(error, request_id=header.request_id) 
+        logger.error(error, request_id=header.request_id)
         status = getStatus(
             header,
             current_unix_milli(),
@@ -189,7 +116,7 @@ async def check_wait_time(header: MsgHeader, execStartTs: int, webhook: str) -> 
             status_code=408,
             message=error,
             data=json.dumps({"error": error}).encode(),
-        )        
+        )
         return False
     return True
 
@@ -219,7 +146,7 @@ async def handle_task(
 
     except Exception as e:
         error = f"custom handler raise exception during running, err: {e}"
-        logger.error(error, request_id=header.request_id, exc_info=True) 
+        logger.error(error, request_id=header.request_id, exc_info=True)
         status = getStatus(
             header,
             current_unix_milli(),
@@ -248,7 +175,7 @@ async def handle_task(
     )
     if err is not None:
         error = f"failed to send result to user, err: {err}"
-        logger.error(error, request_id=header.request_id) 
+        logger.error(error, request_id=header.request_id)
 
         status = getStatus(
             header,
@@ -276,63 +203,3 @@ async def handle_task(
         "succeed",
     )
     await WORKER.task_manager.report_status(header.request_id, status.json().encode())
-
-
-async def send_request(
-    *,
-    header: MsgHeader,
-    webhook: str,
-    status_code: int,
-    message: str,
-    data: bytes,
-):
-
-    @backoff.on_exception(
-        backoff.expo,
-        aiohttp.ClientError,
-        max_tries=3,
-    )
-    async def do_send():
-        async with WORKER.session.post(
-            webhook,
-            params={"requestID": header.request_id, "statusCode": str(status_code)},
-            data=data,
-            headers={"Content-Type": "application/json"},
-        ) as resp:
-            text = await resp.text()
-            return resp, text
-
-    resp, text, err = None, None, None
-
-    if webhook != "":
-        try:
-            resp, text = await do_send()
-        except Exception as e:
-            err = f"failed to call webhook <{webhook}>: {str(e)}"
-        if resp is not None:
-            if resp.status != 200:
-                err = f"request {header.request_id} receive unsuccess status code {resp.status} from webhook, body: {text}"
-
-    try:
-        result = getResult(status_code, message, data)
-        json_result = json.dumps(result).encode()
-        await WORKER.task_manager.send_result(
-            header.request_id,
-            json_result,
-        )
-    except Exception as e:
-        if err is not None:
-            err = f"{err}, failed to send result to agent: {e}"
-        else:
-            err = f"failed to send result to agent: {e}"
-        logger.error(f"failed to send result to agent, err: {e}", request_id=header.request_id, exc_info=True)
-
-    return err
-
-
-def getResult(status_code: int, message: str, data: bytes) -> Dict[str, Any]:
-    return {
-        "statusCode": status_code,
-        "message": message,
-        "data": base64.b64encode(data).decode("utf-8"),
-    }
