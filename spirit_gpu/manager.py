@@ -8,6 +8,19 @@ from .log import logger
 from typing import Any, Callable, Dict
 
 
+HOP_BY_HOP_HEADERS = [
+    "Connection",
+    "Proxy-Connection",
+    "Keep-Alive",
+    "Proxy-Authenticate",
+    "Proxy-Authorization",
+    "Te",
+    "Trailer",
+    "Transfer-Encoding",
+    "Upgrade",
+]
+
+
 class ReportType(Enum):
     STATUS = 1
     ACK = 2
@@ -29,6 +42,10 @@ class TaskManager:
         )
         self._result_url: Callable[[str], str] = lambda request_id: urljoin(
             self._settings.agent_url(), f"/apis/v1/request-result/{request_id}"
+        )
+
+        self._proxy_url: Callable[[str], str] = lambda request_id: urljoin(
+            self._settings.agent_url(), F"/apis/v1/request-result/proxy/{request_id}"
         )
 
     async def next(self):
@@ -60,7 +77,7 @@ class TaskManager:
         try:
             await self._ack_request(request_id)
         except Exception as e:
-            logger.error(f"failed to ack request, err: {e}", request_id=request_id, exc_info=True) 
+            logger.error(f"failed to ack request, err: {e}", request_id=request_id, exc_info=True)
 
     async def _ack_request(self, request_id: str):
         async with self._session.post(self._ack_url(request_id)) as resp:
@@ -82,6 +99,23 @@ class TaskManager:
         except Exception as e:
             logger.error(f"failed to send result, err: {e}", request_id=request_id, exc_info=True)
 
+    async def _send_proxy(self, request_id: str, resp: aiohttp.ClientResponse):
+        headers = resp.headers.copy()
+        for key in HOP_BY_HOP_HEADERS:
+            headers.pop(key, None)
+        data_gen = TaskManager._stream_response(resp)
+        async with self._session.post(self._proxy_url(request_id), data=data_gen, headers=headers) as resp:
+            await resp.text()
+            return resp
+
+    async def send_proxy(self, request_id: str, resp: aiohttp.ClientResponse) -> aiohttp.ClientResponse | str:
+        try:
+            await self._send_proxy(request_id, resp)
+            return resp
+        except Exception as e:
+            logger.error(f"failed to send proxy, err: {e}", request_id=request_id, exc_info=True)
+            return f"failed to send proxy, err: {e}"
+
     async def report_status(self, request_id: str, data: bytes):
         try:
             await self._report_status(request_id, data)
@@ -92,8 +126,13 @@ class TaskManager:
         async with self._session.post(self._status_url(request_id), data=data) as resp:
             if resp.status != 200:
                 text = await resp.text()
-                logger.error(f"failed to report status, status code: {resp.status}, body: {text}", request_id=request_id) 
+                logger.error(f"failed to report status, status code: {resp.status}, body: {text}", request_id=request_id)
                 return
 
     async def close(self):
         await self._session.close()
+
+    @staticmethod
+    async def _stream_response(resp: aiohttp.ClientResponse):
+        async for data in resp.content.iter_any():
+            yield data

@@ -2,7 +2,8 @@ import base64
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Dict
-
+import json
+import dataclasses
 
 class Status(Enum):
     Failed = "failed"
@@ -60,3 +61,48 @@ class Task:
         body: str = request.get("body", "")
         data: bytes = base64.b64decode(body)
         return Task(header=MsgHeader.parse(header), data=data)
+    
+@dataclass
+class RequestStatus:
+    timestamp: int
+
+    requestID: str
+    webhook: str
+
+    status: str
+    operation: str
+
+    enqueueTimestamp: int
+    queueingDuration: int
+    executionDuration: int
+    totalDuration: int
+    requestCreateAt: int
+    message: str
+
+    def json(self):
+        return json.dumps(dataclasses.asdict(self))
+
+
+def getStatus(
+    header: MsgHeader,
+    ts: int,
+    webhook: str,
+    status: str,
+    queueDur: int,
+    execDur: int,
+    totalDur: int,
+    msg: str,
+):
+    return RequestStatus(
+        timestamp=ts,
+        requestID=header.request_id,
+        webhook=webhook,
+        status=status,
+        operation=header.mode,
+        enqueueTimestamp=header.enqueue_at,
+        queueingDuration=queueDur,
+        executionDuration=execDur,
+        totalDuration=totalDur,
+        requestCreateAt=header.create_at,
+        message=msg,
+    )

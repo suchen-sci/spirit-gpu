@@ -1,6 +1,4 @@
 import asyncio
-from dataclasses import dataclass
-import dataclasses
 import inspect
 import json
 import sys
@@ -12,34 +10,12 @@ import base64
 from . import settings
 from .manager import TaskManager
 from .env import Env
-from .task import MsgHeader, Operation, Status, Task
+from .task import MsgHeader, Operation, Status, Task, getStatus
 from .concurrency import Concurrency
 from .log import logger
 from .heartbeat import Heartbeat
 
 from .utils import current_unix_milli
-
-
-@dataclass
-class RequestStatus:
-    timestamp: int
-
-    requestID: str
-    webhook: str
-
-    status: str
-    operation: str
-
-    enqueueTimestamp: int
-    queueingDuration: int
-    executionDuration: int
-    totalDuration: int
-    requestCreateAt: int
-    message: str
-
-    def json(self):
-        return json.dumps(dataclasses.asdict(self))
-
 
 class WorkConfig:
     async def init(self, handlers: Dict[str, Any], env: Env):
@@ -360,28 +336,3 @@ def getResult(status_code: int, message: str, data: bytes) -> Dict[str, Any]:
         "message": message,
         "data": base64.b64encode(data).decode("utf-8"),
     }
-
-
-def getStatus(
-    header: MsgHeader,
-    ts: int,
-    webhook: str,
-    status: str,
-    queueDur: int,
-    execDur: int,
-    totalDur: int,
-    msg: str,
-):
-    return RequestStatus(
-        timestamp=ts,
-        requestID=header.request_id,
-        webhook=webhook,
-        status=status,
-        operation=header.mode,
-        enqueueTimestamp=header.enqueue_at,
-        queueingDuration=queueDur,
-        executionDuration=execDur,
-        totalDuration=totalDur,
-        requestCreateAt=header.create_at,
-        message=msg,
-    )
