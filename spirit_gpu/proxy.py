@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+import inspect
 from os import path
 from aiohttp import ClientSession
-from typing import Dict, Optional, Any
+from typing import Callable, Coroutine, Dict, Optional, Any
 import json
 import base64
 import multidict
@@ -11,7 +12,6 @@ from .task import MsgHeader, Status, getStatus, Task
 from .log import logger
 from .task import MsgHeader
 from .manager import TaskManager
-from .env import Env
 
 
 @dataclass
@@ -19,6 +19,7 @@ class ProxyConfig:
     base_url: str
     session: ClientSession
     task_manager: TaskManager
+    check_start: Callable[[], Coroutine[Any, Any, Any]]
 
 
 def init_proxy_config(proxy_config: ProxyConfig):
@@ -47,21 +48,21 @@ async def parse_proxy_data(header: MsgHeader, execStartTs: int, data: bytes) -> 
         error = f"failed to parse input by using json, err: {e}"
         logger.error(error + f", data: {str(data)}", request_id=header.request_id)
         status = getStatus(
-            header,
-            current_unix_milli(),
-            "",
-            Status.Failed.value,
-            execStartTs - header.enqueue_at,
-            0,
-            0,
-            error,
+            header=header,
+            ts=current_unix_milli(),
+            webhook="",
+            status=Status.Failed.value,
+            queueDur=execStartTs - header.enqueue_at,
+            execDur=0,
+            totalDur=0,
+            msg=error,
         )
         await PROXY_CONFIG.task_manager.report_status(header.request_id, status.json().encode())
         return None, "", False
     return request, "", True
 
 
-async def proxy_handler(task: Task, request: Dict[str, Any], env: Env):
+async def proxy_handler(task: Task, request: Dict[str, Any]):
     proxy_request_data = ProxyRequestData(**request)
     url = path.join(PROXY_CONFIG.base_url, proxy_request_data.uri)
 
@@ -83,3 +84,18 @@ async def proxy_handler(task: Task, request: Dict[str, Any], env: Env):
         else:
             if resp.status != 200:
                 raise Exception(f"failed to send to proxy for request_id: {task.header.request_id}, status code: {resp.status}, body: {await resp.text()}")
+
+
+async def wrap_check_start(handler: Any):
+    if inspect.iscoroutinefunction(handler):
+        async def coroutine_check():
+            return await handler()
+        return coroutine_check
+
+    elif inspect.isfunction(handler):
+        async def normal_check():
+            return handler()
+        return normal_check
+
+    else:
+        raise Exception(f"unsupported check_start function: {handler}")

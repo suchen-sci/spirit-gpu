@@ -46,14 +46,14 @@ async def parse_data(
         error = f"failed to parse input by using json, err: {e}"
         logger.error(error + f", data: {str(data)}", request_id=header.request_id)
         status = getStatus(
-            header,
-            current_unix_milli(),
-            "",
-            Status.Failed.value,
-            execStartTs - header.enqueue_at,
-            0,
-            0,
-            error,
+            header=header,
+            ts=current_unix_milli(),
+            webhook="",
+            status=Status.Failed.value,
+            queueDur=execStartTs - header.enqueue_at,
+            execDur=0,
+            totalDur=0,
+            msg=error,
         )
         await HANDLER_CONFIG.task_manager.report_status(
             header.request_id, status.json().encode()

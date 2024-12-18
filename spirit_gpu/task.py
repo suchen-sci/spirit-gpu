@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict
 import json
 import dataclasses
 
+
 class Status(Enum):
     Failed = "failed"
     Succeed = "succeed"
@@ -39,7 +40,7 @@ class MsgHeader:
 
     @staticmethod
     def parse(headers: Dict[str, str]):
-        getValue : Callable[[str, str], str] = lambda key, default: headers.get(key, default).split(",")[0]
+        getValue: Callable[[str, str], str] = lambda key, default: headers.get(key, default).split(",")[0]
         return MsgHeader(
             mode=getValue(MsgHeaderKey.Mode.value, ""),
             webhook=getValue(MsgHeaderKey.Webhook.value, ""),
@@ -49,6 +50,7 @@ class MsgHeader:
             status_subject=getValue(MsgHeaderKey.StatusSubject.value, ""),
             ttl=int(getValue(MsgHeaderKey.TTL.value, "600000")),
         )
+
 
 @dataclass
 class Task:
@@ -61,7 +63,8 @@ class Task:
         body: str = request.get("body", "")
         data: bytes = base64.b64decode(body)
         return Task(header=MsgHeader.parse(header), data=data)
-    
+
+
 @dataclass
 class RequestStatus:
     timestamp: int
@@ -84,6 +87,7 @@ class RequestStatus:
 
 
 def getStatus(
+    *,
     header: MsgHeader,
     ts: int,
     webhook: str,
