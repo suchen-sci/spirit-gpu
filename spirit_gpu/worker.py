@@ -5,6 +5,8 @@ import sys
 from typing import Dict, Any
 from urllib.parse import urlparse
 import aiohttp
+import base64
+import backoff
 
 from . import settings
 from .manager import TaskManager
@@ -13,7 +15,7 @@ from .task import MsgHeader, Status, Task, getStatus
 from .concurrency import Concurrency
 from .log import logger
 from .heartbeat import Heartbeat
-from .handler import HandlerConfig, init_handler_config, parse_data, wrap_handler, send_request
+from .handler import HandlerConfig, init_handler_config, parse_data, wrap_handler
 from .proxy import parse_proxy_data, proxy_handler, wrap_check_start, ProxyConfig, init_proxy_config
 from .utils import current_unix_milli
 
@@ -30,6 +32,7 @@ class WorkConfig:
         self.handlers = handlers
         self.env = env
         self.concurrency = Concurrency(handlers.get("concurrency_modifier", None))
+        self.session = aiohttp.ClientSession()
 
         # start heartbeat
         self.heartbeat = Heartbeat(self.concurrency)
@@ -290,3 +293,66 @@ async def handle_task(task: Task):
         msg="succeed",
     )
     await WORKER.task_manager.report_status(header.request_id, status.json().encode())
+
+
+async def send_request(
+    *,
+    header: MsgHeader,
+    webhook: str,
+    status_code: int,
+    message: str,
+    data: bytes,
+):
+
+    @backoff.on_exception(
+        backoff.expo,
+        aiohttp.ClientError,
+        max_tries=3,
+    )
+    async def do_send():
+        async with WORKER.session.post(
+            webhook,
+            params={"requestID": header.request_id, "statusCode": str(status_code)},
+            data=data,
+            headers={"Content-Type": "application/json"},
+        ) as resp:
+            text = await resp.text()
+            return resp, text
+
+    resp, text, err = None, None, None
+
+    if webhook != "":
+        try:
+            resp, text = await do_send()
+        except Exception as e:
+            err = f"failed to call webhook <{webhook}>: {str(e)}"
+        if resp is not None:
+            if resp.status != 200:
+                err = f"request {header.request_id} receive unsuccess status code {resp.status} from webhook, body: {text}"
+
+    try:
+        if WORKER.mode == WorkerMode.Default:
+            result = _getResult(status_code, message, data)
+            json_result = json.dumps(result).encode()
+            await WORKER.task_manager.send_result(
+                header.request_id,
+                json_result,
+            )
+        else:
+            await WORKER.task_manager.send_proxy_result(request_id=header.request_id, status_code=status_code, data=data)
+    except Exception as e:
+        if err is not None:
+            err = f"{err}, failed to send result to agent: {e}"
+        else:
+            err = f"failed to send result to agent: {e}"
+        logger.error(f"failed to send result to agent, err: {e}", request_id=header.request_id, exc_info=True)
+
+    return err
+
+
+def _getResult(status_code: int, message: str, data: bytes) -> Dict[str, Any]:
+    return {
+        "statusCode": status_code,
+        "message": message,
+        "data": base64.b64encode(data).decode("utf-8"),
+    }

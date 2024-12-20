@@ -44,8 +44,8 @@ class TaskManager:
             self._settings.agent_url(), f"/apis/v1/request-result/{request_id}"
         )
 
-        self._proxy_url: Callable[[str], str] = lambda request_id: urljoin(
-            self._settings.agent_url(), F"/apis/v1/request-result/proxy/{request_id}"
+        self._proxy_url: Callable[[str, int], str] = lambda request_id, status_code: urljoin(
+            self._settings.agent_url(), F"/apis/v1/request-result/proxy/{request_id}?statusCode={status_code}"
         )
 
     async def next(self):
@@ -104,9 +104,18 @@ class TaskManager:
         for key in HOP_BY_HOP_HEADERS:
             headers.pop(key, None)
         data_gen = TaskManager._stream_response(resp)
-        async with self._session.post(self._proxy_url(request_id), data=data_gen, headers=headers) as resp:
+        async with self._session.post(self._proxy_url(request_id, resp.status), data=data_gen, headers=headers) as resp:
             await resp.text()
             return resp
+    
+    async def send_proxy_result(self, request_id: str, status_code: int, data: bytes):
+        try:
+            async with self._session.post(self._proxy_url(request_id, status_code), data=data) as resp:
+                if resp.status != 200:
+                    text = await resp.text()
+                    logger.error(f"failed to send proxy result, status code: {resp.status}, body: {text}", request_id=request_id)
+        except Exception as e:
+            logger.error(f"failed to send proxy result, err: {e}", request_id=request_id, exc_info=True)
 
     async def send_proxy(self, request_id: str, resp: aiohttp.ClientResponse) -> aiohttp.ClientResponse | str:
         try:

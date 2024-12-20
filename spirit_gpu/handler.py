@@ -1,10 +1,8 @@
 import inspect
 import json
-from typing import Callable, Coroutine, Dict, Any
+from typing import Callable, Coroutine, Any
 import aiohttp
 from attr import dataclass
-import backoff
-import base64
 
 from .manager import TaskManager
 from .env import Env
@@ -96,63 +94,3 @@ async def wrap_handler(handler: Any, env: Env):
             return handler(request, env)
 
         return normal_handler
-
-
-async def send_request(
-    *,
-    header: MsgHeader,
-    webhook: str,
-    status_code: int,
-    message: str,
-    data: bytes,
-):
-
-    @backoff.on_exception(
-        backoff.expo,
-        aiohttp.ClientError,
-        max_tries=3,
-    )
-    async def do_send():
-        async with HANDLER_CONFIG.session.post(
-            webhook,
-            params={"requestID": header.request_id, "statusCode": str(status_code)},
-            data=data,
-            headers={"Content-Type": "application/json"},
-        ) as resp:
-            text = await resp.text()
-            return resp, text
-
-    resp, text, err = None, None, None
-
-    if webhook != "":
-        try:
-            resp, text = await do_send()
-        except Exception as e:
-            err = f"failed to call webhook <{webhook}>: {str(e)}"
-        if resp is not None:
-            if resp.status != 200:
-                err = f"request {header.request_id} receive unsuccess status code {resp.status} from webhook, body: {text}"
-
-    try:
-        result = _getResult(status_code, message, data)
-        json_result = json.dumps(result).encode()
-        await HANDLER_CONFIG.task_manager.send_result(
-            header.request_id,
-            json_result,
-        )
-    except Exception as e:
-        if err is not None:
-            err = f"{err}, failed to send result to agent: {e}"
-        else:
-            err = f"failed to send result to agent: {e}"
-        logger.error(f"failed to send result to agent, err: {e}", request_id=header.request_id, exc_info=True)
-
-    return err
-
-
-def _getResult(status_code: int, message: str, data: bytes) -> Dict[str, Any]:
-    return {
-        "statusCode": status_code,
-        "message": message,
-        "data": base64.b64encode(data).decode("utf-8"),
-    }
