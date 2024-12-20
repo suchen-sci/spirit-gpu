@@ -231,7 +231,7 @@ async def handle_task(task: Task):
                 res = json.dumps(res).encode()
 
     except Exception as e:
-        error = f"custom handler raise exception during running, err: {e}"
+        error = f"{WORKER.mode.value} handler raise exception during running, err: {e}"
         logger.error(error, request_id=header.request_id, exc_info=True)
         status = getStatus(
             header=header,

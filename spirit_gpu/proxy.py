@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import inspect
-from os import path
+from urllib.parse import urljoin
 from aiohttp import ClientSession
 from typing import Callable, Coroutine, Dict, Optional, Any
 import json
@@ -64,13 +64,14 @@ async def parse_proxy_data(header: MsgHeader, execStartTs: int, data: bytes) -> 
 
 async def proxy_handler(task: Task, request: Dict[str, Any]):
     proxy_request_data = ProxyRequestData(**request)
-    url = path.join(PROXY_CONFIG.base_url, proxy_request_data.uri)
+    url = urljoin(PROXY_CONFIG.base_url, proxy_request_data.uri)
 
     headers = multidict.CIMultiDict[str]()
     for key, values in proxy_request_data.header.items():
         for value in values:
             headers.add(key, value)
 
+    logger.info(f"proxy request: {proxy_request_data.method} {url}", request_id=task.header.request_id)
     async with PROXY_CONFIG.session.request(
         proxy_request_data.method,
         url,

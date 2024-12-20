@@ -45,7 +45,7 @@ class TaskManager:
         )
 
         self._proxy_url: Callable[[str, int], str] = lambda request_id, status_code: urljoin(
-            self._settings.agent_url(), F"/apis/v1/request-result/proxy/{request_id}?statusCode={status_code}"
+            self._settings.agent_url(), f"/apis/v1/request-proxy/{request_id}?statusCode={status_code}"
         )
 
     async def next(self):
