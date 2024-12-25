@@ -103,8 +103,11 @@ class TaskManager:
         headers = resp.headers.copy()
         for key in HOP_BY_HOP_HEADERS:
             headers.pop(key, None)
-        data_gen = TaskManager._stream_response(resp)
-        async with self._session.post(self._proxy_url(request_id, resp.status), data=data_gen, headers=headers) as resp:
+        if "Content-Length" in headers:
+            data = await resp.read()
+        else:
+            data = TaskManager._stream_response(resp)
+        async with self._session.post(self._proxy_url(request_id, resp.status), data=data, headers=headers) as resp:
             await resp.text()
             return resp
     
