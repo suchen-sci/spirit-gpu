@@ -87,6 +87,7 @@ class WorkConfig:
         while True:
             started = await self.proxy_config.check_start()
             if started:
+                logger.info("check_start return True, local server is ready")
                 break
             else:
                 logger.info("check_start return False, local server is not ready")
