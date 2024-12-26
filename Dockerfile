@@ -14,10 +14,11 @@ COPY requirements.txt /workspace/requirements.txt
 COPY setup.py /workspace/setup.py
 COPY test.sh /workspace/test.sh
 
+
 # 复制目录及其内容
 COPY spirit_gpu /workspace/spirit_gpu
 COPY test /workspace/test
-
+COPY .git /workspace/.git
 WORKDIR /workspace
 RUN pip3 install .
 RUN pip3 install -r requirements.txt
