@@ -9,14 +9,10 @@ async def check_start():
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(base_url) as response:
-                if response.status == 200:
-                    return True
-                else:
-                    body = await response.text()
-                    logger.info(f"failed to connect to {base_url}, status code: {response.status}, body: {body}")
-                    return False
-    except Exception as e:
-        logger.info(f"failed to connect to {base_url}, err: {e}")
+                text = await response.text()
+                logger.info(f"response.status: {response.status}, text: {text}")
+                return True
+    except Exception:
         return False
 
 
