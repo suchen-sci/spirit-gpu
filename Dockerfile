@@ -9,6 +9,8 @@ COPY requirements.txt /workspace/requirements.txt
 COPY setup.py /workspace/setup.py
 COPY spirit_gpu /workspace/spirit_gpu
 COPY test /workspace/test
+COPY LICENSE /workspace/LICENSE
+COPY README.md /workspace/README.md
 
 WORKDIR /workspace
 RUN pip3 install .
