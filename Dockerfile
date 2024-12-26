@@ -1,7 +1,6 @@
 FROM megaease/base:cuda11.8.0-v0.0.1
 
 RUN pip3 install vllm
-RUN vllm serve NousResearch/Meta-Llama-3-8B-Instruct --dtype auto &
 
 COPY . /workspace 
 WORKDIR /workspace
