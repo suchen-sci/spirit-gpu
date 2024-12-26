@@ -7,7 +7,5 @@ WORKDIR /workspace
 RUN pip3 install .
 RUN pip3 install -r requirements.txt
 
-RUN python3.11 ./test/download_data.py
-
 ENTRYPOINT [ "sh" ]
 CMD [ "./test/run.sh" ]
