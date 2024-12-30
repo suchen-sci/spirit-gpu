@@ -84,13 +84,17 @@ class WorkConfig:
             check_start=check_start,
         )
         init_proxy_config(self.proxy_config)
+
+        index = 0
         while True:
+            index += 1
             started = await self.proxy_config.check_start()
             if started:
                 logger.info("check_start return True, local server is ready")
                 break
             else:
-                logger.info("check_start return False, local server is not ready")
+                if index % 10 == 0:
+                    logger.info("check_start return False, local server is not ready")
             await asyncio.sleep(0.5)
 
     async def _init_handler(self):
