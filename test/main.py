@@ -2,7 +2,7 @@ import aiohttp
 from spirit_gpu import start, logger
 
 
-base_url = "http://localhost:8000/v1"
+base_url = "http://localhost:8000"
 
 
 async def check_start():
@@ -18,6 +18,6 @@ async def check_start():
 
 start({
     "mode": "proxy",
-    "base_url": "http://localhost:8000/v1",
+    "base_url": "http://localhost:8000",
     "check_start": check_start,
 })
